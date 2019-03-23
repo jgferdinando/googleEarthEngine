@@ -1,0 +1,46 @@
+//rgb composite interannual variation of ferrous iron index
+var L81 = ee.ImageCollection("LANDSAT/LC08/C01/T1")
+  .filterDate('2016-01-01','2016-12-31')
+  .filter(ee.Filter.calendarRange(6,11,'month'))  
+var L82 = ee.ImageCollection("LANDSAT/LC08/C01/T1")
+  .filterDate('2017-01-01','2017-12-31')
+  .filter(ee.Filter.calendarRange(6,11,'month'))  
+var L83 = ee.ImageCollection("LANDSAT/LC08/C01/T1")
+  .filterDate('2018-01-01','2018-12-31')
+  .filter(ee.Filter.calendarRange(6,11,'month'))  
+var composite1 = ee.Algorithms.Landsat.simpleComposite({
+  collection:L81,
+  asFloat:true})
+var composite2 = ee.Algorithms.Landsat.simpleComposite({
+  collection:L82,
+  asFloat:true})
+var composite3 = ee.Algorithms.Landsat.simpleComposite({
+  collection:L83,
+  asFloat:true})
+var green_1 = composite1.select("B3")
+var red_1 = composite1.select("B4")
+var nir_1 = composite1.select("B5")
+var swir2_1 = composite1.select("B7")
+var iron_1 = (swir2_1.divide(nir_1)).add(green_1.divide(red_1)) 
+var green_2 = composite2.select("B3")
+var red_2 = composite2.select("B4")
+var nir_2 = composite2.select("B5")
+var swir2_2 = composite2.select("B7")
+var iron_2 = (swir2_2.divide(nir_2)).add(green_2.divide(red_2)) 
+var green_3 = composite3.select("B3")
+var red_3 = composite3.select("B4")
+var nir_3 = composite3.select("B5")
+var swir2_3 = composite3.select("B7")
+var iron_3 = (swir2_3.divide(nir_3)).add(green_3.divide(red_3)) 
+var irons = composite1
+  .addBands(iron_1.rename('iron_1'))
+  .addBands(iron_2.rename('iron_2'))
+  .addBands(iron_3.rename('iron_3'))  
+Map.addLayer(irons, {bands: ["iron_1", "iron_2", "iron_3"], min:1, max:3, opacity:1})
+var nbrRGB = irons.visualize({
+  bands: ['iron_1', 'iron_2', 'iron_3'],
+  min:1, max:3});
+Export.image.toDrive({
+  image: nbrRGB,
+  description: 'nbrRGB',
+  scale: 100});
