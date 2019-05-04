@@ -1,13 +1,13 @@
 //rgb composite river meanders
 var L81 = ee.ImageCollection("LANDSAT/LC08/C01/T1")
-  .filterDate('2014-06-01','2014-09-30')
-  .filter(ee.Filter.calendarRange(6,11,'month'))  
+  .filterDate('2013-01-01','2013-12-31')
+  .filter(ee.Filter.calendarRange(1,12,'month'))  
 var L82 = ee.ImageCollection("LANDSAT/LC08/C01/T1")
-  .filterDate('2016-06-01','2016-09-30')
-  .filter(ee.Filter.calendarRange(6,11,'month'))  
+  .filterDate('2016-01-01','2016-12-31')
+  .filter(ee.Filter.calendarRange(1,12,'month'))  
 var L83 = ee.ImageCollection("LANDSAT/LC08/C01/T1")
-  .filterDate('2018-06-01','2018-09-30')
-  .filter(ee.Filter.calendarRange(6,11,'month'))  
+  .filterDate('2019-01-01','2019-12-31')
+  .filter(ee.Filter.calendarRange(1,12,'month'))  
 var composite1 = ee.Algorithms.Landsat.simpleComposite({
   collection:L81,
   asFloat:true})
