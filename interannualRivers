@@ -41,4 +41,5 @@ var nbrRGB = rivers.visualize({
 Export.image.toDrive({
   image: nbrRGB,
   description: 'nbrRGB',
+  crs: 'EPSG:3857',
   scale: 30});
