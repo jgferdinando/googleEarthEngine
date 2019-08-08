@@ -52,5 +52,6 @@ var ndviRGB = ndvis.visualize({
 Export.image.toDrive({
   image: ndviRGB,
   description: 'ndviRGB',
+  crs: 'EPSG:3857',
   scale: 10
 });
