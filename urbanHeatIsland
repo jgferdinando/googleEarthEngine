@@ -29,7 +29,7 @@ var heats = composite1
   .addBands(heat_2.rename('heat_2'))
   .addBands(heat_3.rename('heat_3'))  
 Map.addLayer(heats, {bands: ["heat_1", "heat_2", "heat_3"], min:0, max:1, opacity:1})
-var nbrRGB = rivers.visualize({
+var heatRGB = heats.visualize({
   bands: ['heat_1', 'heat_2', 'heat_3'],
   min:0, max:1});
 Export.image.toDrive({
