@@ -36,16 +36,9 @@ Map.addLayer(dataset.mean(), rgbVis, 'RGB');
 
 //
 
-var rgbVis = rgbVis.visualize({
-  bands: ['B4', 'B3', 'B2'],
-  min:0.02, max:0.4
-});
 Export.image.toDrive({
-  image: rgbVis,
-  description: 'truecolor',
-  crs: 'EPSG:3857',
-  scale: 10
+ image: dataset,
+ description: 'imageToDriveExample',
+ crs: 'EPSG:3857',
+ scale: 10,
 });
-
-
-
