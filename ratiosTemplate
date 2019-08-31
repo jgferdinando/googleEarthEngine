@@ -1,0 +1,38 @@
+//rgb ratios template
+var L81 = ee.ImageCollection("LANDSAT/LC08/C01/T1")
+  .filterDate('2018-01-01','2018-12-31')
+  .filter(ee.Filter.calendarRange(1,12,'month'))  
+  
+var composite1 = ee.Algorithms.Landsat.simpleComposite({
+  collection:L81,
+  asFloat:true})
+
+var aerosol = composite1.select("B1")
+var blue = composite1.select("B2")
+var green = composite1.select("B3")
+var red = composite1.select("B3")
+var nir = composite1.select("B5")
+var swir1 = composite1.select("B6")
+var swir2 = composite1.select("B7")
+
+var ratio1 = nir.divide(aerosol)
+var ratio2 = swir1.divide(blue)
+var ratio3 = swir2.divide(red)
+ 
+var ratios = composite1
+  .addBands(ratio1.rename('ratio1'))
+  .addBands(ratio2.rename('ratio2'))
+  .addBands(ratio3.rename('ratio3'))  
+  
+var minimum = 1.5
+var maximum = 5
+  
+Map.addLayer(ratios, {bands: ["ratio1", "ratio2", "ratio3"], min:minimum, max:maximum, opacity:1})
+
+var nbrRGB = ratios.visualize({
+  bands: ['ratio1', 'ratio2', 'ratio3'],
+  min:minimum, max:maximum});
+Export.image.toDrive({
+  image: nbrRGB,
+  description: 'nbrRGB',
+  scale: 30});
