@@ -20,25 +20,59 @@ function maskS2clouds(image) {
 // Map the function over one year of data and take the median.
 // Load Sentinel-2 TOA reflectance data.
 var dataset = ee.ImageCollection('COPERNICUS/S2')
-                  .filterDate('2018-01-01', '2018-12-31')
+                  .filterDate('2018-05-01', '2018-09-30')
                   // Pre-filter to get less cloudy granules.
                   .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
-                  .map(maskS2clouds);
+                  .map(maskS2clouds)
+                  .median();
 
 var rgbVis = {
   min: 0.02,
   max: 0.4,
-  bands: ['B4', 'B3', 'B2'],
+  bands: ['B8', 'B4', 'B3'],
 };
 
+Map.addLayer(dataset, rgbVis, 'RGB');
 
-Map.addLayer(dataset.mean(), rgbVis, 'RGB');
+var trueColorRGB = dataset.visualize({
+  bands: ['B8', 'B4', 'B3'],
+  min:0.02, max:0.4
+});
+
+Export.image.toDrive({
+ image: trueColorRGB,
+ description: 'trueColor',
+ crs: 'EPSG:3857',
+ scale: 10,
+});
 
 //
 
+var aerosol = dataset.select("B1")
+var blue = dataset.select("B2")
+var green = dataset.select("B3")
+var red = dataset.select("B4")
+var nir = dataset.select("B8")
+var swir1 = dataset.select("B11")
+var swir2 = dataset.select("B12")
+
+
+var ndvi = nir.subtract(red).divide(nir.add(red))
+var ndvis = dataset.addBands(ndvi.rename('ndvi'))
+
+var ndviVis = {
+  min: 0.35,
+  max: 0.1
+};
+Map.addLayer(ndvis, ndviVis);
+
+var bwNDVI = ndvis.visualize({
+  min:0.35, max:0.1
+});
+
 Export.image.toDrive({
- image: dataset,
- description: 'imageToDriveExample',
+ image: bwNDVI,
+ description: 'bwNDVI',
  crs: 'EPSG:3857',
  scale: 10,
 });
