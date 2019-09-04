@@ -1,0 +1,122 @@
+/**
+ * Function to mask clouds using the Sentinel-2 QA band
+ * @param {ee.Image} image Sentinel-2 image
+ * @return {ee.Image} cloud masked Sentinel-2 image
+ */
+function maskS2clouds(image) {
+  var qa = image.select('QA60');
+
+  // Bits 10 and 11 are clouds and cirrus, respectively.
+  var cloudBitMask = 1 << 10;
+  var cirrusBitMask = 1 << 11;
+
+  // Both flags should be set to zero, indicating clear conditions.
+  var mask = qa.bitwiseAnd(cloudBitMask).eq(0)
+      .and(qa.bitwiseAnd(cirrusBitMask).eq(0));
+
+  return image.updateMask(mask).divide(10000);
+}
+
+// Map the function over one year of data and take the median.
+// Load Sentinel-2 TOA reflectance data.
+var dataset = ee.ImageCollection('COPERNICUS/S2')
+                  .filterDate('2018-05-01', '2018-09-30')
+                  // Pre-filter to get less cloudy granules.
+                  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
+                  .map(maskS2clouds)
+                  .median();
+
+var rgbVis = {
+  min: 0.02,
+  max: 0.3,
+  bands: ['B4', 'B3', 'B2'],
+};
+
+
+
+var trueColorRGB = dataset.visualize({
+  bands: ['B8', 'B4', 'B3'],
+  min:0.02, max:0.4, opacity:0.8
+});
+
+Export.image.toDrive({
+ image: trueColorRGB,
+ description: 'trueColor',
+ crs: 'EPSG:3857',
+ scale: 10,
+});
+
+//
+
+var aerosol = dataset.select("B1")
+var blue = dataset.select("B2")
+var green = dataset.select("B3")
+var red = dataset.select("B4")
+var nir = dataset.select("B8")
+var swir1 = dataset.select("B11")
+var swir2 = dataset.select("B12")
+
+
+var ndvi = nir.subtract(red).divide(nir.add(red))
+var ndvis = dataset.addBands(ndvi.rename('ndvi'))
+
+var ndviVis = {
+  min: 0.35,
+  max: 0.1
+};
+//Map.addLayer(ndvis, ndviVis);
+
+var bwNDVI = ndvis.visualize({
+  min:0.35, max:0.1
+});
+
+Export.image.toDrive({
+ image: bwNDVI,
+ description: 'bwNDVI',
+ crs: 'EPSG:3857',
+ scale: 10,
+});
+
+
+// Load the SRTM image.
+var srtm = ee.Image('CGIAR/SRTM90_V4');
+
+// Apply an algorithm to an image.
+var slope = ee.Terrain.slope(srtm);
+
+// Display the result.
+
+var aspect = ee.Terrain.aspect(srtm);
+
+// Convert to radians, compute the sin of the aspect.
+var sinImage = aspect.divide(180).multiply(Math.PI).sin();
+
+// Display the result.
+Map.addLayer(sinImage, {min: -1, max: 1, opacity:0.8}, 'sin');
+//Map.addLayer(slope, {min: 0, max :10}, 'slope');
+Map.addLayer(srtm, {min: 500, max :1800}, 'srtm');
+Map.addLayer(dataset, rgbVis, 'RGB');
+
+var srtm = srtm.visualize({min: 900, max :1200});
+Export.image.toDrive({
+  image: srtm,
+  description: 'srtm',
+  crs: 'EPSG:3857',
+  scale: 30
+});
+
+var slope = slope.visualize({min: 0, max :10});
+Export.image.toDrive({
+  image: slope,
+  description: 'slope',
+  crs: 'EPSG:3857',
+  scale: 30
+});
+
+var sinImage = sinImage.visualize({min: -1, max :1});
+Export.image.toDrive({
+  image: sinImage,
+  description: 'sinImage',
+  crs: 'EPSG:3857',
+  scale: 30
+});
