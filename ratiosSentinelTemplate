@@ -56,9 +56,9 @@ var nir = dataset.select("B8")
 var swir1 = dataset.select("B11")
 var swir2 = dataset.select("B12")
 
-var ratio1 = nir.divide(aerosol)
-var ratio2 = swir1.divide(blue)
-var ratio3 = swir2.divide(red)
+var ratio1 = nir.divide(green)
+var ratio2 = swir1.divide(green)
+var ratio3 = swir2.divide(nir)
  
 var ratios = ee.Image([])
 var ratios = ratios
@@ -66,22 +66,15 @@ var ratios = ratios
   .addBands(ratio2.rename('ratio2'))
   .addBands(ratio3.rename('ratio3'))
 
-//var ndvi = nir.subtract(red).divide(nir.add(red))
-//var ndvis = dataset.addBands(ndvi.rename('ndvi'))
-
-//var ndviVis = {
-//  min: 0.35,
-//  max: 0.1
-//};
-//Map.addLayer(ndvis, ndviVis);
-
-var minimum = 1.5
-var maximum = 5
+var minimum = 1
+var maximum = 4
+ 
+var bands = ["ratio2", "ratio1", "ratio3"]
   
-Map.addLayer(ratios, {bands: ["ratio1", "ratio2", "ratio3"], min:minimum, max:maximum, opacity:1})
+Map.addLayer(ratios, {bands: bands, min:minimum, max:maximum, opacity:1})
 
 var nbrRGB = ratios.visualize({
-  bands: ['ratio1', 'ratio2', 'ratio3'],
+  bands: bands,
   min:minimum, max:maximum});
 Export.image.toDrive({
   image: nbrRGB,
