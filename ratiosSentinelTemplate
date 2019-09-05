@@ -56,9 +56,9 @@ var nir = dataset.select("B8")
 var swir1 = dataset.select("B11")
 var swir2 = dataset.select("B12")
 
-var ratio1 = nir.divide(green)
-var ratio2 = swir1.divide(green)
-var ratio3 = swir2.divide(nir)
+var ratio1 = red.divide(nir)
+var ratio2 = green.divide(nir)
+var ratio3 = aerosol.divide(nir);
  
 var ratios = ee.Image([])
 var ratios = ratios
@@ -66,10 +66,10 @@ var ratios = ratios
   .addBands(ratio2.rename('ratio2'))
   .addBands(ratio3.rename('ratio3'))
 
-var minimum = 1
-var maximum = 4
+var minimum = 0
+var maximum = 1
  
-var bands = ["ratio2", "ratio1", "ratio3"]
+var bands = ["ratio3", "ratio2", "ratio1"]
   
 Map.addLayer(ratios, {bands: bands, min:minimum, max:maximum, opacity:1})
 
