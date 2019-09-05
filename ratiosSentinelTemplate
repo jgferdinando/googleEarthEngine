@@ -1,0 +1,89 @@
+/**
+ * Function to mask clouds using the Sentinel-2 QA band
+ * @param {ee.Image} image Sentinel-2 image
+ * @return {ee.Image} cloud masked Sentinel-2 image
+ */
+function maskS2clouds(image) {
+  var qa = image.select('QA60');
+
+  // Bits 10 and 11 are clouds and cirrus, respectively.
+  var cloudBitMask = 1 << 10;
+  var cirrusBitMask = 1 << 11;
+
+  // Both flags should be set to zero, indicating clear conditions.
+  var mask = qa.bitwiseAnd(cloudBitMask).eq(0)
+      .and(qa.bitwiseAnd(cirrusBitMask).eq(0));
+
+  return image.updateMask(mask).divide(10000);
+}
+
+// Map the function over one year of data and take the median.
+// Load Sentinel-2 TOA reflectance data.
+var dataset = ee.ImageCollection('COPERNICUS/S2')
+                  .filterDate('2018-05-01', '2018-09-30')
+                  // Pre-filter to get less cloudy granules.
+                  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
+                  .map(maskS2clouds)
+                  .median();
+
+var rgbVis = {
+  min: 0.02,
+  max: 0.4,
+  bands: ['B8', 'B4', 'B3'],
+};
+
+//Map.addLayer(dataset, rgbVis, 'RGB');
+
+var trueColorRGB = dataset.visualize({
+  bands: ['B8', 'B4', 'B3'],
+  min:0.02, max:0.4
+});
+
+Export.image.toDrive({
+ image: trueColorRGB,
+ description: 'trueColor',
+ crs: 'EPSG:3857',
+ scale: 10,
+});
+
+//
+
+var aerosol = dataset.select("B1")
+var blue = dataset.select("B2")
+var green = dataset.select("B3")
+var red = dataset.select("B4")
+var nir = dataset.select("B8")
+var swir1 = dataset.select("B11")
+var swir2 = dataset.select("B12")
+
+var ratio1 = nir.divide(aerosol)
+var ratio2 = swir1.divide(blue)
+var ratio3 = swir2.divide(red)
+ 
+var ratios = ee.Image([])
+var ratios = ratios
+  .addBands(ratio1.rename('ratio1'))
+  .addBands(ratio2.rename('ratio2'))
+  .addBands(ratio3.rename('ratio3'))
+
+//var ndvi = nir.subtract(red).divide(nir.add(red))
+//var ndvis = dataset.addBands(ndvi.rename('ndvi'))
+
+//var ndviVis = {
+//  min: 0.35,
+//  max: 0.1
+//};
+//Map.addLayer(ndvis, ndviVis);
+
+var minimum = 1.5
+var maximum = 5
+  
+Map.addLayer(ratios, {bands: ["ratio1", "ratio2", "ratio3"], min:minimum, max:maximum, opacity:1})
+
+var nbrRGB = ratios.visualize({
+  bands: ['ratio1', 'ratio2', 'ratio3'],
+  min:minimum, max:maximum});
+Export.image.toDrive({
+  image: nbrRGB,
+  description: 'nbrRGB',
+  scale: 30});
