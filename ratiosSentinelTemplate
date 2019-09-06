@@ -56,9 +56,9 @@ var nir = dataset.select("B8")
 var swir1 = dataset.select("B11")
 var swir2 = dataset.select("B12")
 
-var ratio1 = red.divide(nir)
-var ratio2 = green.divide(nir)
-var ratio3 = aerosol.divide(nir);
+var ratio1 = nir.divide(red);
+var ratio2 = nir.divide(green);
+var ratio3 = nir.divide(blue);
  
 var ratios = ee.Image([])
 var ratios = ratios
@@ -66,8 +66,8 @@ var ratios = ratios
   .addBands(ratio2.rename('ratio2'))
   .addBands(ratio3.rename('ratio3'))
 
-var minimum = 0
-var maximum = 1
+var minimum = 0.8
+var maximum = 4
  
 var bands = ["ratio3", "ratio2", "ratio1"]
   
@@ -79,4 +79,4 @@ var nbrRGB = ratios.visualize({
 Export.image.toDrive({
   image: nbrRGB,
   description: 'nbrRGB',
-  scale: 30});
+  scale: 10});
