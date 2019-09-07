@@ -48,26 +48,32 @@ Export.image.toDrive({
 
 //
 
-var aerosol = dataset.select("B1")
-var blue = dataset.select("B2")
-var green = dataset.select("B3")
-var red = dataset.select("B4")
-var nir = dataset.select("B8")
-var swir1 = dataset.select("B11")
-var swir2 = dataset.select("B12")
+var aerosol = dataset.select("B1");
+var blue = dataset.select("B2");
+var green = dataset.select("B3");
+var red = dataset.select("B4");
+var redEdge1 = dataset.select("B5");
+var redEdge2 = dataset.select("B6");
+var redEdge3 = dataset.select("B7");
+var nir = dataset.select("B8");
+var redEdge4 = dataset.select("B8A");
+var vapor = dataset.select("B9");
+var cirrus = dataset.select("B10");
+var swir1 = dataset.select("B11");
+var swir2 = dataset.select("B12");
 
-var ratio1 = nir.divide(red);
-var ratio2 = nir.divide(green);
-var ratio3 = nir.divide(blue);
+var ratio1 = red; //.divide(nir);
+var ratio2 = green.divide(swir1);
+var ratio3 = blue.divide(swir2);
  
-var ratios = ee.Image([])
+var ratios = ee.Image([]);
 var ratios = ratios
   .addBands(ratio1.rename('ratio1'))
   .addBands(ratio2.rename('ratio2'))
   .addBands(ratio3.rename('ratio3'))
 
-var minimum = 0.8
-var maximum = 4
+var minimum = 0
+var maximum = 1
  
 var bands = ["ratio3", "ratio2", "ratio1"]
   
