@@ -1,7 +1,37 @@
-
-
 // Load the SRTM image.
 var srtm = ee.Image('CGIAR/SRTM90_V4');
+var geometry = ee.Geometry.Rectangle([-104, 38, -100, 42]);
+var dataset = ee.Image('USGS/NED');
+var elevation = dataset.select('elevation');
+var elevationVis = {
+  min: 900,
+  max: 1300.0,
+  gamma: 1.6,
+};
+
+Map.addLayer(elevation, elevationVis, 'Elevation');
+var lines = ee.List.sequence(800, 1600, 2.5)
+ 
+var contourlines = lines.map(function(line) {
+var mycontour = elevation
+.convolve(ee.Kernel.gaussian(5, 3))
+.subtract(ee.Image.constant(line)).zeroCrossing()
+.multiply(ee.Image.constant(line)).toFloat();
+return mycontour.mask(mycontour);
+})
+contourlines = ee.ImageCollection(contourlines).mosaic()
+Map.addLayer(contourlines, {min: 800, max: 1600}, 'contours')
+Map.centerObject(geometry,5)
+Map.setCenter(-102.829083, 32.965150, 8);
+
+var contourExport = contourlines.visualize({min: 800, max: 1600});
+Export.image.toDrive({
+  image: contourExport,
+  description: 'slope',
+  crs: 'EPSG:3857',
+  scale: 10
+});
+///////////////////////////////////////////
 
 // Apply an algorithm to an image.
 var slope = ee.Terrain.slope(srtm);
@@ -14,9 +44,9 @@ var aspect = ee.Terrain.aspect(srtm);
 var sinImage = aspect.divide(180).multiply(Math.PI).sin();
 
 // Display the result.
-Map.addLayer(sinImage, {min: -1, max: 1}, 'sin');
-Map.addLayer(slope, {min: 0, max :10}, 'slope');
-Map.addLayer(srtm, {min: 900, max :1200}, 'srtm');
+//Map.addLayer(sinImage, {min: -1, max: 1}, 'sin');
+//Map.addLayer(slope, {min: 0, max :10}, 'slope');
+//Map.addLayer(srtm, {min: 900, max :1200}, 'srtm');
 
 var srtm = srtm.visualize({min: 900, max :1200});
 Export.image.toDrive({
