@@ -1,6 +1,6 @@
 // Load the SRTM image.
 var srtm = ee.Image('CGIAR/SRTM90_V4');
-var geometry = ee.Geometry.Rectangle([-104, 38, -100, 42]);
+var geometry = ee.Geometry.Rectangle([-102.879083, 32.915150, -102.779083, 33.465150]);
 var dataset = ee.Image('USGS/NED');
 var elevation = dataset.select('elevation');
 var elevationVis = {
@@ -21,15 +21,35 @@ return mycontour.mask(mycontour);
 })
 contourlines = ee.ImageCollection(contourlines).mosaic()
 Map.addLayer(contourlines, {min: 800, max: 1600}, 'contours')
-Map.centerObject(geometry,5)
-Map.setCenter(-102.829083, 32.965150, 8);
+Map.centerObject(geometry,11)
+Map.setCenter(-102.829083, 32.965150, 11);
 
-var contourExport = contourlines.visualize({min: 800, max: 1600});
+
 Export.image.toDrive({
-  image: contourExport,
-  description: 'slope',
+  image: contourlines,
+  description: 'contourExport',
   crs: 'EPSG:3857',
-  scale: 10
+  scale: 12
+});
+
+//contourlines = ee.Image.constant(1).clip(geometry).addBands(contourlines);
+
+var vectorContours = contourlines.reduceToVectors({
+  geometry: geometry,
+  crs: 'EPSG:3857',
+  scale: 15,
+  geometryType: 'polygon',
+  eightConnected: false,
+  labelProperty: 'zone',
+  reducer: ee.Reducer.mean()
+});
+
+//Map.addLayer(vectorContours);
+
+Export.table.toDrive({
+  collection: vectorContours,
+  description:'contourVectors',
+  fileFormat: 'SHP'
 });
 ///////////////////////////////////////////
 
