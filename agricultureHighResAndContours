@@ -1,0 +1,37 @@
+var dataset = ee.ImageCollection('USDA/NAIP/DOQQ')
+                  .filter(ee.Filter.date('2012-01-01', '2013-12-31'));
+var trueColor = dataset.select(['N', 'R', 'G']);
+var trueColorVis = {
+  min: 0.0,
+  max: 255.0,
+};
+
+Map.setCenter(-102.829083, 32.965150, 11);
+//var trueColorImage = Map.addLayer(trueColor, trueColorVis, 'True Color');
+
+
+var dataset = ee.Image('USGS/NED');
+var elevation = dataset.select('elevation');
+var elevationVis = {
+  min: 900,
+  max: 1300.0,
+  gamma: 1.6,
+};
+
+//Map.addLayer(elevation, elevationVis, 'Elevation');
+var lines = ee.List.sequence(800, 1600, 2.5)
+ 
+var contourlines = lines.map(function(line) {
+var mycontour = elevation
+.convolve(ee.Kernel.gaussian(5, 3))
+.subtract(ee.Image.constant(line)).zeroCrossing()
+.multiply(ee.Image.constant(line)).toFloat();
+return mycontour.mask(mycontour);
+})
+contourlines = ee.ImageCollection(contourlines).mosaic()
+
+
+Map.setCenter(-102.829083, 32.965150, 11);
+
+contourlines = ee.ImageCollection(contourlines).mean()
+Map.addLayer(contourlines, {min: 800, max: 1600}, 'contours')
