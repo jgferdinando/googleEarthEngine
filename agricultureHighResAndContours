@@ -7,7 +7,7 @@ var trueColorVis = {
 };
 
 Map.setCenter(-102.829083, 32.965150, 11);
-//var trueColorImage = Map.addLayer(trueColor, trueColorVis, 'True Color');
+
 
 
 var dataset = ee.Image('USGS/NED');
@@ -19,7 +19,7 @@ var elevationVis = {
 };
 
 //Map.addLayer(elevation, elevationVis, 'Elevation');
-var lines = ee.List.sequence(800, 1600, 2.5)
+var lines = ee.List.sequence(0, 2400, 3)
  
 var contourlines = lines.map(function(line) {
 var mycontour = elevation
@@ -27,11 +27,53 @@ var mycontour = elevation
 .subtract(ee.Image.constant(line)).zeroCrossing()
 .multiply(ee.Image.constant(line)).toFloat();
 return mycontour.mask(mycontour);
-})
+});
 contourlines = ee.ImageCollection(contourlines).mosaic()
+var contourlines = contourlines.unmask(-9999);
+Map.setCenter(-102.829083, 32.965150, 9);
 
+//////////////////////////
 
-Map.setCenter(-102.829083, 32.965150, 11);
+var wasson = ee.Geometry.Rectangle([-104.75, 32.5, -100.75, 33.5]);
+
+contourlines = ee.Image.constant(1).clip(wasson).addBands(contourlines);
+
+var vectorcontourlines = contourlines.reduceToVectors({
+  geometry: wasson,
+  //crs: nl2012.projection(),
+  scale: 100,
+  geometryType: 'polygon',
+  eightConnected: false,
+  labelProperty: 'zone',
+  reducer: ee.Reducer.mean()
+});
+
 
 contourlines = ee.ImageCollection(contourlines).mean()
-Map.addLayer(contourlines, {min: 800, max: 1600}, 'contours')
+
+var trueColorImage = trueColor.median();
+Map.addLayer(trueColorImage, trueColorVis, 'True Color');
+Map.addLayer(contourlines, {min: 0, max: 3000}, 'contours')
+//var together = trueColorImage.add(contourlines);
+//Map.addLayer(together)
+
+Export.image.toDrive({
+  image: trueColorImage,
+  description: 'trueColorImage',
+  scale: 10});
+
+Export.image.toDrive({
+  image: contourlines,
+  description: 'contourlines',
+  scale: 50});
+  
+Export.image.toDrive({
+  image: contourlines,
+  description: 'contourlines',
+  scale: 50});
+  
+  Export.table.toDrive({
+  collection: vectorcontourlines,
+  description:'vectorcontourlines',
+  fileFormat: 'SHP'
+});
