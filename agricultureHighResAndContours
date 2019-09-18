@@ -6,10 +6,6 @@ var trueColorVis = {
   max: 255.0,
 };
 
-Map.setCenter(-102.829083, 32.965150, 11);
-
-
-
 var dataset = ee.Image('USGS/NED');
 var elevation = dataset.select('elevation');
 var elevationVis = {
@@ -19,7 +15,7 @@ var elevationVis = {
 };
 
 //Map.addLayer(elevation, elevationVis, 'Elevation');
-var lines = ee.List.sequence(0, 2400, 3)
+var lines = ee.List.sequence(0, 4000, 5)
  
 var contourlines = lines.map(function(line) {
 var mycontour = elevation
@@ -29,27 +25,37 @@ var mycontour = elevation
 return mycontour.mask(mycontour);
 });
 contourlines = ee.ImageCollection(contourlines).mosaic()
-var contourlines = contourlines.unmask(-9999);
-Map.setCenter(-102.829083, 32.965150, 9);
+//var contourlines = contourlines.unmask(1);
+Map.setCenter(-102.829083, 32.965150, 8);
 
 //////////////////////////
 
-var wasson = ee.Geometry.Rectangle([-104.75, 32.5, -100.75, 33.5]);
+var wasson = ee.Geometry.Rectangle([-107, 31, -98, 35]);
 
-contourlines = ee.Image.constant(1).clip(wasson).addBands(contourlines);
-
-var vectorcontourlines = contourlines.reduceToVectors({
-  geometry: wasson,
-  //crs: nl2012.projection(),
-  scale: 100,
-  geometryType: 'polygon',
-  eightConnected: false,
-  labelProperty: 'zone',
-  reducer: ee.Reducer.mean()
-});
-
+contourlines = ee.Image.constant(1).add(contourlines).clip(wasson);
 
 contourlines = ee.ImageCollection(contourlines).mean()
+
+Map.addLayer(contourlines, {min: 0, max: 3000}, 'contours')
+
+//var trueColorImage = trueColor.median();
+//Map.addLayer(trueColorImage, trueColorVis, 'True Color');
+
+//var together = trueColorImage.add(contourlines);
+//Map.addLayer(together)
+
+//Export.image.toDrive({
+//  image: trueColorImage,
+//  description: 'trueColorImage',
+//  scale: 10});
+
+Export.image.toDrive({
+  image: contourlines,
+  description: 'contourlines',
+  scale: 100});
+  
+
+
 
 var trueColorImage = trueColor.median();
 Map.addLayer(trueColorImage, trueColorVis, 'True Color');
@@ -66,11 +72,7 @@ Export.image.toDrive({
   image: contourlines,
   description: 'contourlines',
   scale: 50});
-  
-Export.image.toDrive({
-  image: contourlines,
-  description: 'contourlines',
-  scale: 50});
+
   
   Export.table.toDrive({
   collection: vectorcontourlines,
