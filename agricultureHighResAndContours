@@ -15,7 +15,7 @@ var elevationVis = {
 };
 
 //Map.addLayer(elevation, elevationVis, 'Elevation');
-var lines = ee.List.sequence(0, 4000, 5)
+var lines = ee.List.sequence(0, 6000, 25)
  
 var contourlines = lines.map(function(line) {
 var mycontour = elevation
@@ -26,17 +26,17 @@ return mycontour.mask(mycontour);
 });
 contourlines = ee.ImageCollection(contourlines).mosaic()
 //var contourlines = contourlines.unmask(1);
-Map.setCenter(-102.829083, 32.965150, 8);
+Map.setCenter(-116.028002, 37.021948, 10);
 
 //////////////////////////
 
-var wasson = ee.Geometry.Rectangle([-107, 31, -98, 35]);
+var wasson = ee.Geometry.Rectangle([-117, 36, -115, 38]);
 
 contourlines = ee.Image.constant(1).add(contourlines).clip(wasson);
 
-contourlines = ee.ImageCollection(contourlines).mean()
+//contourlines = ee.ImageCollection(contourlines).mean()
 
-Map.addLayer(contourlines, {min: 0, max: 3000}, 'contours')
+Map.addLayer(contourlines, {min: 0, max: 4000}, 'contours')
 
 //var trueColorImage = trueColor.median();
 //Map.addLayer(trueColorImage, trueColorVis, 'True Color');
@@ -44,22 +44,11 @@ Map.addLayer(contourlines, {min: 0, max: 3000}, 'contours')
 //var together = trueColorImage.add(contourlines);
 //Map.addLayer(together)
 
-//Export.image.toDrive({
-//  image: trueColorImage,
-//  description: 'trueColorImage',
-//  scale: 10});
 
-Export.image.toDrive({
-  image: contourlines,
-  description: 'contourlines',
-  scale: 100});
   
-
-
-
 var trueColorImage = trueColor.median();
 Map.addLayer(trueColorImage, trueColorVis, 'True Color');
-Map.addLayer(contourlines, {min: 0, max: 3000}, 'contours')
+
 //var together = trueColorImage.add(contourlines);
 //Map.addLayer(together)
 
@@ -71,11 +60,4 @@ Export.image.toDrive({
 Export.image.toDrive({
   image: contourlines,
   description: 'contourlines',
-  scale: 50});
-
-  
-  Export.table.toDrive({
-  collection: vectorcontourlines,
-  description:'vectorcontourlines',
-  fileFormat: 'SHP'
-});
+  scale: 100});
