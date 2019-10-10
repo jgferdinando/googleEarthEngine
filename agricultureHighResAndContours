@@ -15,7 +15,7 @@ var elevationVis = {
 };
 
 //Map.addLayer(elevation, elevationVis, 'Elevation');
-var lines = ee.List.sequence(0, 6000, 25)
+var lines = ee.List.sequence(500, 4000, 1)
  
 var contourlines = lines.map(function(line) {
 var mycontour = elevation
@@ -26,17 +26,17 @@ return mycontour.mask(mycontour);
 });
 contourlines = ee.ImageCollection(contourlines).mosaic()
 //var contourlines = contourlines.unmask(1);
-Map.setCenter(-116.028002, 37.021948, 10);
+Map.setCenter(-102.812782, 33.002225, 15);
 
 //////////////////////////
 
-var wasson = ee.Geometry.Rectangle([-117, 36, -115, 38]);
+var wasson = ee.Geometry.Rectangle([-103.8, 32.5, -101.8, 33.5]);
 
 contourlines = ee.Image.constant(1).add(contourlines).clip(wasson);
 
 //contourlines = ee.ImageCollection(contourlines).mean()
 
-Map.addLayer(contourlines, {min: 0, max: 4000}, 'contours')
+
 
 //var trueColorImage = trueColor.median();
 //Map.addLayer(trueColorImage, trueColorVis, 'True Color');
@@ -48,7 +48,7 @@ Map.addLayer(contourlines, {min: 0, max: 4000}, 'contours')
   
 var trueColorImage = trueColor.median();
 Map.addLayer(trueColorImage, trueColorVis, 'True Color');
-
+Map.addLayer(contourlines, {min: 500, max: 4000}, 'contours')
 //var together = trueColorImage.add(contourlines);
 //Map.addLayer(together)
 
