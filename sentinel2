@@ -1,104 +1,67 @@
-//Find cloud-free pixels, then create composite image (replace "median" with mode, mean, min, max as needed)
-//modify date range as needed as well
-//to save results to google drive, click 'run' in the tasks tab
-function maskS2clouds(image) {
-  var qa = image.select('QA60');
-
-  var cloudBitMask = 1 << 10;
-  var cirrusBitMask = 1 << 11;
-
-  var mask = qa.bitwiseAnd(cloudBitMask).eq(0)
-      .and(qa.bitwiseAnd(cirrusBitMask).eq(0));
-
-  return image.updateMask(mask).divide(10000);
-}
-
-var dataset = ee.ImageCollection('COPERNICUS/S2')
-                  .filterDate('2018-05-01', '2018-09-30')
-                  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
-                  .map(maskS2clouds)
-                  .median();
-
-//color stretch values for screen and for google drive geotiff export:
-var minimum = 0;
-var maximum = 0.5;
-
-var bands = ['B8', 'B4', 'B3'];
-
-var rgbVis = {
-  min: minimum,
-  max: maximum,
-  bands: bands,
+var dataset = ee.ImageCollection('USDA/NAIP/DOQQ')
+                  .filter(ee.Filter.date('2012-01-01', '2013-12-31'));
+var trueColor = dataset.select(['N', 'R', 'G']);
+var red = dataset.select(['R']).median();
+var nir = dataset.select(['N']).median();
+var ndvi = nir.subtract(red).divide(nir.add(red)).rename('NDVI');
+Map.addLayer(ndvi,{min:-0.25,max:0.25},'NDVI');
+var trueColorVis = {
+  min: 0.0,
+  max: 255.0,
 };
 
-//make layer visible in browser map
-Map.addLayer(dataset, rgbVis, 'Multiband RGB Composite');
+var dataset = ee.Image('USGS/NED');
+var elevation = dataset.select('elevation');
+var elevationVis = {
+  min: 900,
+  max: 1300.0,
+  gamma: 1.6,
+};
 
-//export image to google drive
-var trueColorRGB = dataset.visualize({
-  bands: bands,
-  min: minimum, max:maximum
-});
-Export.image.toDrive({
- image: trueColorRGB,
- description: 'trueColor',
- crs: 'EPSG:3857',
- scale: 10,
-});
-
-////////////////////////////////////////////////////////////////
-
-//label bands with names for math
-var aerosol = dataset.select("B1");
-var blue = dataset.select("B2");
-var green = dataset.select("B3");
-var red = dataset.select("B4");
-var redEdge1 = dataset.select("B5");
-var redEdge2 = dataset.select("B6");
-var redEdge3 = dataset.select("B7");
-var nir = dataset.select("B8");
-var redEdge4 = dataset.select("B8A");
-var vapor = dataset.select("B9");
-var cirrus = dataset.select("B10");
-var swir1 = dataset.select("B11");
-var swir2 = dataset.select("B12");
-
-//create ndvi image and add to window
-var ndvi = nir.subtract(red).divide(nir.add(red)).rename('NDVI');
-Map.addLayer(ndvi,{min:-1,max:1},'NDVI');
-var exportNDVI = ndvi.visualize({
-  min:-1, max:1});
-Export.image.toDrive({
-  image: exportNDVI,
-  description: 'NDVIexport',
-  scale: 10});
-
-//create ratio images as needed
-var ratio1 = redEdge4.divide(blue);
-var ratio2 = green.divide(swir1);
-var ratio3 = blue.divide(swir2);
-
-//add an individual ratio image to map as a panchromatic image
-Map.addLayer(ratio1);
+//Map.addLayer(elevation, elevationVis, 'Elevation');
+var lines = ee.List.sequence(500, 4000, 1)
  
-//create a new multiband raster composed of the ratio images
-var ratios = ee.Image([]);
-var ratios = ratios
-  .addBands(ratio1.rename('ratio1'))
-  .addBands(ratio2.rename('ratio2'))
-  .addBands(ratio3.rename('ratio3'))
+var contourlines = lines.map(function(line) {
+var mycontour = elevation
+.convolve(ee.Kernel.gaussian(5, 3))
+.subtract(ee.Image.constant(line)).zeroCrossing()
+.multiply(ee.Image.constant(line)).toFloat();
+return mycontour.mask(mycontour);
+});
+contourlines = ee.ImageCollection(contourlines).mosaic()
+//var contourlines = contourlines.unmask(1);
+Map.setCenter(-102.812782, 33.002225, 15);
 
-var minimum = 0
-var maximum = 1
- 
-var bands = ["ratio3", "ratio2", "ratio1"]
+//////////////////////////
+
+var wasson = ee.Geometry.Rectangle([-103.8, 32.5, -101.8, 33.5]);
+
+contourlines = ee.Image.constant(1).add(contourlines).clip(wasson);
+
+//contourlines = ee.ImageCollection(contourlines).mean()
+
+
+
+//var trueColorImage = trueColor.median();
+//Map.addLayer(trueColorImage, trueColorVis, 'True Color');
+
+//var together = trueColorImage.add(contourlines);
+//Map.addLayer(together)
+
+
   
-Map.addLayer(ratios, {bands: bands, min:minimum, max:maximum, opacity:1}, 'RGB Ratios')
+var trueColorImage = trueColor.median();
+Map.addLayer(trueColorImage, trueColorVis, 'True Color');
+Map.addLayer(contourlines, {min: 500, max: 4000}, 'contours')
+//var together = trueColorImage.add(contourlines);
+//Map.addLayer(together)
 
-var ratiosRGB = ratios.visualize({
-  bands: bands,
-  min:minimum, max:maximum});
 Export.image.toDrive({
-  image: ratiosRGB,
-  description: 'RGBratios',
+  image: trueColorImage,
+  description: 'trueColorImage',
   scale: 10});
+
+Export.image.toDrive({
+  image: contourlines,
+  description: 'contourlines',
+  scale: 100});
