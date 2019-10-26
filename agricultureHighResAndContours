@@ -1,6 +1,10 @@
 var dataset = ee.ImageCollection('USDA/NAIP/DOQQ')
                   .filter(ee.Filter.date('2012-01-01', '2013-12-31'));
 var trueColor = dataset.select(['N', 'R', 'G']);
+var red = dataset.select(['R']).median();
+var nir = dataset.select(['N']).median();
+var ndvi = nir.subtract(red).divide(nir.add(red)).rename('NDVI');
+Map.addLayer(ndvi,{min:-0.1,max:0.15},'NDVI');
 var trueColorVis = {
   min: 0.0,
   max: 255.0,
@@ -25,8 +29,8 @@ var mycontour = elevation
 return mycontour.mask(mycontour);
 });
 contourlines = ee.ImageCollection(contourlines).mosaic()
-//var contourlines = contourlines.unmask(1);
-Map.setCenter(-102.812782, 33.002225, 15);
+
+Map.setCenter(-102.914248, 32.871453, 15);
 
 //////////////////////////
 
@@ -34,7 +38,11 @@ var wasson = ee.Geometry.Rectangle([-103.8, 32.5, -101.8, 33.5]);
 
 contourlines = ee.Image.constant(1).add(contourlines).clip(wasson);
 
+//var contourlines = contourlines.unmask();
 //contourlines = ee.ImageCollection(contourlines).mean()
+var ndvi2 = ndvi.add(contourlines);
+Map.addLayer(ndvi2,{min:-0.16,max:0.18},'NDVI 2');
+
 
 
 
@@ -47,8 +55,8 @@ contourlines = ee.Image.constant(1).add(contourlines).clip(wasson);
 
   
 var trueColorImage = trueColor.median();
-Map.addLayer(trueColorImage, trueColorVis, 'True Color');
-Map.addLayer(contourlines, {min: 500, max: 4000}, 'contours')
+//Map.addLayer(trueColorImage, trueColorVis, 'True Color');
+//Map.addLayer(contourlines, {min: 500, max: 4000}, 'contours')
 //var together = trueColorImage.add(contourlines);
 //Map.addLayer(together)
 
