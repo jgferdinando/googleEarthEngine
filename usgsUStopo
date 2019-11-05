@@ -1,19 +1,18 @@
-var geometry = ee.Geometry.Rectangle([-82.432976, 24.386289, -79.820856, 27.539889]);
+var geometry = ee.Geometry.Rectangle([-103.8, 32.5, -101.8, 33.5]);
 var dataset = ee.Image('USGS/NED');
 var elevation = dataset.select('elevation').clip(geometry);
 var elevationVis = {
-  min: 0,
-  max: 70.0,
-  gamma: 1.6,
+  min: 1065,
+  max: 1085.0
 };
 
+Map.setCenter(-102.704887, 33.126160,  17);
 Map.addLayer(elevation, elevationVis, 'Elevation');
 
-var elevation = elevation.visualize({min: 0, max :70});
+var elevation = elevation.visualize(elevationVis);
 Export.image.toDrive({
   image: elevation,
-  description: 'elevation_florida',
+  description: 'elevation_plainsTX',
   crs: 'EPSG:3857',
   scale: 120
 });
-
