@@ -4,7 +4,8 @@ var trueColor = dataset.select(['N', 'R', 'G']);
 var red = dataset.select(['R']).median();
 var nir = dataset.select(['N']).median();
 var ndvi = nir.subtract(red).divide(nir.add(red)).rename('NDVI');
-Map.addLayer(ndvi,{min:-0.1,max:0.15},'NDVI');
+var ndviVis = {min:-0.15,max:0.15};
+Map.addLayer(ndvi,ndviVis,'NDVI');
 var trueColorVis = {
   min: 0.0,
   max: 255.0,
@@ -13,12 +14,11 @@ var trueColorVis = {
 var dataset = ee.Image('USGS/NED');
 var elevation = dataset.select('elevation');
 var elevationVis = {
-  min: 900,
-  max: 1300.0,
-  gamma: 1.6,
+  min: 1050,
+  max: 1120.0
 };
 
-//Map.addLayer(elevation, elevationVis, 'Elevation');
+Map.addLayer(elevation, elevationVis, 'Elevation');
 var lines = ee.List.sequence(500, 4000, 1)
  
 var contourlines = lines.map(function(line) {
@@ -30,7 +30,7 @@ return mycontour.mask(mycontour);
 });
 contourlines = ee.ImageCollection(contourlines).mosaic()
 
-Map.setCenter(-102.914248, 32.871453, 15);
+Map.setCenter(-102.704804,33.126229,  13);
 
 //////////////////////////
 
@@ -55,15 +55,28 @@ Map.addLayer(ndvi2,{min:-0.16,max:0.18},'NDVI 2');
 
   
 var trueColorImage = trueColor.median();
-//Map.addLayer(trueColorImage, trueColorVis, 'True Color');
+Map.addLayer(trueColorImage, trueColorVis, 'True Color');
 //Map.addLayer(contourlines, {min: 500, max: 4000}, 'contours')
 //var together = trueColorImage.add(contourlines);
 //Map.addLayer(together)
 
+var elevation = elevation.visualize(elevationVis);
+Export.image.toDrive({
+  image: elevation,
+  description: 'elevation',
+  scale: 5});
+
+var trueColorImage = trueColorImage.visualize(trueColorVis);
 Export.image.toDrive({
   image: trueColorImage,
   description: 'trueColorImage',
-  scale: 10});
+  scale: 5});
+
+var ndvi = ndvi.visualize(ndviVis);
+Export.image.toDrive({
+  image: ndvi,
+  description: 'ndviForSite',
+  scale: 5});
 
 Export.image.toDrive({
   image: contourlines,
