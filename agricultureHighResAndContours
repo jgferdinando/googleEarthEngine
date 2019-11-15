@@ -1,10 +1,10 @@
 var dataset = ee.ImageCollection('USDA/NAIP/DOQQ')
                   .filter(ee.Filter.date('2012-01-01', '2013-12-31'));
-var trueColor = dataset.select(['N', 'R', 'G']);
+var trueColor = dataset.select(['R', 'G', 'B']);
 var red = dataset.select(['R']).median();
 var nir = dataset.select(['N']).median();
 var ndvi = nir.subtract(red).divide(nir.add(red)).rename('NDVI');
-var ndviVis = {min:-0.15,max:0.15};
+var ndviVis = {min:-0.15,max:0.5};
 Map.addLayer(ndvi,ndviVis,'NDVI');
 var trueColorVis = {
   min: 0.0,
@@ -14,8 +14,8 @@ var trueColorVis = {
 var dataset = ee.Image('USGS/NED');
 var elevation = dataset.select('elevation');
 var elevationVis = {
-  min: 1050,
-  max: 1120.0
+  min: -10,
+  max: 100.0
 };
 
 Map.addLayer(elevation, elevationVis, 'Elevation');
@@ -34,7 +34,7 @@ Map.setCenter(-102.704804,33.126229,  13);
 
 //////////////////////////
 
-var wasson = ee.Geometry.Rectangle([-103.8, 32.5, -101.8, 33.5]);
+var wasson = ee.Geometry.Rectangle([-103.8, 20, -70, 33.5]);
 
 contourlines = ee.Image.constant(1).add(contourlines).clip(wasson);
 
