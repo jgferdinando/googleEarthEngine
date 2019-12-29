@@ -12,21 +12,21 @@ function maskS2clouds(image) {
 }
 
 var composite1 = ee.ImageCollection('COPERNICUS/S2')
-  .filterDate('2016-01-01','2016-12-31')
-  .filter(ee.Filter.calendarRange(5,11,'month'))  
-  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
+  .filterDate('2015-01-01','2015-12-31')
+  .filter(ee.Filter.calendarRange(3,11,'month'))  
+  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
   .map(maskS2clouds)
   .median();
 var composite2 = ee.ImageCollection('COPERNICUS/S2')
   .filterDate('2017-01-01','2017-12-31')
-  .filter(ee.Filter.calendarRange(5,11,'month')) 
-  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
+  .filter(ee.Filter.calendarRange(3,11,'month')) 
+  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
   .map(maskS2clouds)
   .median();
 var composite3 = ee.ImageCollection('COPERNICUS/S2')
-  .filterDate('2018-01-01','2018-12-31')
-  .filter(ee.Filter.calendarRange(5,11,'month')) 
-  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
+  .filterDate('2019-01-01','2019-12-31')
+  .filter(ee.Filter.calendarRange(3,11,'month')) 
+  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
   .map(maskS2clouds)
   .median();
 //var composite1 = ee.Algorithms.Landsat.simpleComposite({
@@ -63,4 +63,4 @@ Export.image.toDrive({
   image: nbrRGB,
   description: 'nbrRGB',
   crs: 'EPSG:3857',
-  scale: 30});
+  scale: 10});
