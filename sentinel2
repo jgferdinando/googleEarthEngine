@@ -14,21 +14,23 @@ function maskS2clouds(image) {
 }
 
 var dataset = ee.ImageCollection('COPERNICUS/S2')
-                  .filterDate('2018-05-01', '2018-09-30')
-                  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
-                  .map(maskS2clouds)
+                  .filterDate('2018-08-09', '2018-08-12')
+                  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 50))
+                  //.map(maskS2clouds)
                   .median();
 
 //color stretch values for screen and for google drive geotiff export:
-var minimum = 0;
-var maximum = 0.5;
+var minimum = [500,500,0];
+var maximum = [4000,6000,12000];
+var gamma = [0.95, 1.1, 1];
 
-var bands = ['B8', 'B4', 'B3'];
+var bands = ['B12', 'B8', 'B1'];
 
 var rgbVis = {
   min: minimum,
   max: maximum,
   bands: bands,
+  gamma: gamma,
 };
 
 //make layer visible in browser map
@@ -37,7 +39,8 @@ Map.addLayer(dataset, rgbVis, 'Multiband RGB Composite');
 //export image to google drive
 var trueColorRGB = dataset.visualize({
   bands: bands,
-  min: minimum, max:maximum
+  min: minimum, max:maximum,
+  gamma: gamma,
 });
 Export.image.toDrive({
  image: trueColorRGB,
@@ -65,7 +68,7 @@ var swir2 = dataset.select("B12");
 
 //create ndvi image and add to window
 var ndvi = nir.subtract(red).divide(nir.add(red)).rename('NDVI');
-Map.addLayer(ndvi,{min:-1,max:1},'NDVI');
+//Map.addLayer(ndvi,{min:-1,max:1},'NDVI');
 var exportNDVI = ndvi.visualize({
   min:-1, max:1});
 Export.image.toDrive({
@@ -79,7 +82,7 @@ var ratio2 = green.divide(swir1);
 var ratio3 = blue.divide(swir2);
 
 //add an individual ratio image to map as a panchromatic image
-Map.addLayer(ratio1);
+//Map.addLayer(ratio1);
  
 //create a new multiband raster composed of the ratio images
 var ratios = ee.Image([]);
@@ -93,7 +96,7 @@ var maximum = 1
  
 var bands = ["ratio3", "ratio2", "ratio1"]
   
-Map.addLayer(ratios, {bands: bands, min:minimum, max:maximum, opacity:1}, 'RGB Ratios')
+//Map.addLayer(ratios, {bands: bands, min:minimum, max:maximum, opacity:1}, 'RGB Ratios')
 
 var ratiosRGB = ratios.visualize({
   bands: bands,
