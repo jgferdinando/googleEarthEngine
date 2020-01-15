@@ -1,0 +1,61 @@
+//GIS data for NYC
+
+Map.setCenter(-73.962425, 40.787890, 12); 
+
+//Get National Agriculture Imagery Program (NAIP) data. 
+//"The program began with a 5-year cycle in 2003 then switched over to a 3-year cycle in 2009, with 2008 being a transition year."
+
+var dataset1 = ee.ImageCollection('USDA/NAIP/DOQQ')
+                  .filter(ee.Filter.date('2017-01-01', '2017-12-31'));
+
+var dataset2 = ee.ImageCollection('USDA/NAIP/DOQQ')
+                  .filter(ee.Filter.date('2015-04-01', '2015-08-31'));
+                  
+var dataset3 = ee.ImageCollection('USDA/NAIP/DOQQ')
+                  .filter(ee.Filter.date('2013-04-01', '2013-08-31'));
+
+//most recent true color image
+                 
+var trueColor1 = dataset1.select(['R', 'G', 'B']);
+var trueColorVis = {
+  min: 40.0,
+  max: 185.0,
+};
+var trueColorImage = trueColor1.median();
+Map.addLayer(trueColorImage, trueColorVis, 'True Color');
+
+//calculate most recent normalized difference vegetation index
+
+var red1 = dataset1.select(['R']).median();
+var nir1 = dataset1.select(['N']).median();
+var ndvi1 = nir1.subtract(red1).divide(nir1.add(red1)).rename('NDVI 1');
+
+var red2 = dataset2.select(['R']).median();
+var nir2 = dataset2.select(['N']).median();
+var ndvi2 = nir2.subtract(red2).divide(nir2.add(red2)).rename('NDVI 2');
+
+var red3 = dataset3.select(['R']).median();
+var nir3 = dataset3.select(['N']).median();
+var ndvi3 = nir3.subtract(red3).divide(nir3.add(red3)).rename('NDVI 3');
+
+var ndviDiff = ndvi3.subtract(ndvi1);
+var ndviRatio = ndvi3.divide(ndvi1);
+
+var ndviVis = {min:-0.5, max:1, opacity:1};
+Map.addLayer(ndvi1, ndviVis, 'NDVI 1');
+Map.addLayer(ndvi2, ndviVis, 'NDVI 2');
+Map.addLayer(ndvi3, ndviVis, 'NDVI 3');
+Map.addLayer(ndviDiff, ndviVis, 'NDVI Difference');
+Map.addLayer(ndviRatio, ndviVis, 'NDVI Ratio');
+
+var multiband = ee.Image([ndvi3, ndvi2, ndvi1]);
+
+Map.addLayer(multiband, ndviVis, 'NDVI Multitemporal RGB');
+
+
+
+var trueColorImage = trueColorImage.visualize(trueColorVis);
+Export.image.toDrive({
+  image: trueColorImage,
+  description: 'trueColorImage',
+  scale: 1});
