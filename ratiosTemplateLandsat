@@ -1,4 +1,7 @@
 //rgb ratios template
+
+Map.setCenter( -116.833183, 36.287075, 11.5 )
+
 var L81 = ee.ImageCollection("LANDSAT/LC08/C01/T1")
   .filterDate('2018-01-01','2018-12-31')
   .filter(ee.Filter.calendarRange(1,12,'month'))  
@@ -24,8 +27,8 @@ var ratios = composite1
   .addBands(ratio2.rename('ratio2'))
   .addBands(ratio3.rename('ratio3'))  
   
-var minimum = 1.5
-var maximum = 5
+var minimum = 0
+var maximum = 3
   
 Map.addLayer(ratios, {bands: ["ratio1", "ratio2", "ratio3"], min:minimum, max:maximum, opacity:1})
 
