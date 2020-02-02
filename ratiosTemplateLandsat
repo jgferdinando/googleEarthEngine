@@ -1,6 +1,6 @@
 //rgb ratios template
 
-Map.setCenter( -116.833183, 36.287075, 11.5 )
+Map.setCenter( -116.833183, 36.287075, 10 )
 
 var L81 = ee.ImageCollection("LANDSAT/LC08/C01/T1")
   .filterDate('2018-01-01','2018-12-31')
