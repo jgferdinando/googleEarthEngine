@@ -35,11 +35,13 @@ var rivers = composite1
   .addBands(river_2.rename('river_2'))
   .addBands(river_3.rename('river_3'))  
 Map.addLayer(rivers, {bands: ["river_1", "river_2", "river_3"], min:0, max:5, opacity:1})
+
+
 var nbrRGB = rivers.visualize({
-  bands: ['river_1', 'river_2', 'river_3'],
+  
   min:0, max:5});
 Export.image.toDrive({
   image: nbrRGB,
   description: 'nbrRGB',
-  crs: 'EPSG:3857',
-  scale: 30});
+  crs: 'EPSG:3395',
+  scale: 75});
