@@ -1,16 +1,18 @@
 //intra annual NDVI comparison (seasonality) for harvest dates, burn scars
 //rgb composites of ndvi's for different groups of months to ID plants or harvest
 
+Map.setCenter(  -123.046543, 44.944624, 10);
+
 var L81 = ee.ImageCollection("LANDSAT/LC08/C01/T1")
-  .filterDate('2018-01-01','2018-12-31')
+  .filterDate('2020-01-01','2020-12-31')
   .filter(ee.Filter.calendarRange(4,5,'month'))
   
 var L82 = ee.ImageCollection("LANDSAT/LC08/C01/T1")
-  .filterDate('2018-01-01','2018-12-31')
+  .filterDate('2020-01-01','2020-12-31')
   .filter(ee.Filter.calendarRange(6,7,'month'))
   
 var L83 = ee.ImageCollection("LANDSAT/LC08/C01/T1")
-  .filterDate('2018-01-01','2018-12-31')
+  .filterDate('2020-01-01','2020-12-31')
   .filter(ee.Filter.calendarRange(8,9,'month'))
   
 var composite1 = ee.Algorithms.Landsat.simpleComposite({
@@ -53,5 +55,5 @@ Export.image.toDrive({
   image: ndviRGB,
   description: 'ndviRGB',
   crs: 'EPSG:3857',
-  scale: 10
+  scale: 30
 });
