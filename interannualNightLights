@@ -1,16 +1,15 @@
-
-Map.setCenter(127.5, 38, 6);
+//Map.setCenter(127.5, 38, 6);
 
 var dataset1 = ee.ImageCollection('NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG')
-                  .filter(ee.Filter.date('2014-01-01', '2014-12-31')).select('avg_rad');
+                  .filter(ee.Filter.date('2019-01-01', '2019-04-30')).select('avg_rad');
 var nighttime1 = dataset1.max().rename('b1');
 
 var dataset2 = ee.ImageCollection('NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG')
-                  .filter(ee.Filter.date('2016-01-01', '2016-12-31')).select('avg_rad');
+                  .filter(ee.Filter.date('2019-05-01', '2019-08-31')).select('avg_rad');
 var nighttime2 = dataset2.max().rename('b2');
 
 var dataset3 = ee.ImageCollection('NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG')
-                  .filter(ee.Filter.date('2018-01-01', '2018-12-31')).select('avg_rad');
+                  .filter(ee.Filter.date('2019-09-01', '2019-12-31')).select('avg_rad');
 var nighttime3 = dataset3.max().rename('b3');
 
 var multiband = ee.Image([nighttime1, nighttime2, nighttime3]);
