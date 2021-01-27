@@ -1,0 +1,143 @@
+var dataset = ee.ImageCollection('USGS/NLCD');
+var landcover0 = dataset.select('landcover')
+  .filterDate('1991-01-01', '1992-12-31')
+  .mean();
+var landcover = dataset.select('landcover')
+  .filterDate('2001-01-01', '2001-12-31')
+  .mean();
+var landcover2 = dataset.select('landcover')
+  .filterDate('2016-01-01', '2016-12-31')
+  .mean();
+  
+var change = (landcover2.subtract(landcover)).divide(landcover2.add(landcover));
+  
+var landcoverVis = {
+  min: 0.0,
+  max: 95.0,
+  palette: [
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '466b9f',
+    'd1def8',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    'dec5c5',
+    'd99282',
+    'eb0000',
+    'ab0000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    'b3ac9f',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '68ab5f',
+    '1c5f2c',
+    'b5c58f',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    'af963c',
+    'ccb879',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    'dfdfc2',
+    'd1d182',
+    'a3cc51',
+    '82ba9e',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    'dcd939',
+    'ab6c28',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    'b8d9eb',
+    '000000',
+    '000000',
+    '000000',
+    '000000',
+    '6c9fb8'
+  ],
+};
+
+var changeVis = {
+  min: -1.0,
+  max: 1.0,
+  palette: ['ffffff','000000','ffffff'],
+};
+
+Map.setCenter( -95.69379105522131, 29.780362383850534, 10);
+
+var rectangle = ee.Geometry.Rectangle(-97, 29, -94, 30.5);
+
+var landcover = landcover.clip(rectangle);
+var landcover2 = landcover2.clip(rectangle);
+var change = change.clip(rectangle);
+
+Map.addLayer(landcover, landcoverVis, 'Landcover 2001');
+Map.addLayer(landcover2, landcoverVis, 'Landcover 2016');
+Map.addLayer(change, changeVis, 'Landcover Change');
+
+var changeExport = change.visualize(changeVis);
+Export.image.toDrive({
+  image: changeExport,
+  description: 'NLCD_Change_2001-2016',
+  crs: 'EPSG:3395',
+  scale: 30});
+
+
+
